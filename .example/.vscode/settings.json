@@ -1,0 +1,7 @@
+{
+	// Put here your `emsdk_env.sh` path
+	"emsdk_env": "emsdk_env.sh",
+	"build_jobs": "14",
+	//"cmake_build_type": "MinSizeRel"
+	"cmake_build_type": "Debug"
+}

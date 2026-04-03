@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<style>
+		#canvas {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			margin: 0px;
+			overflow: hidden;
+			display: block;
+		}
+
+		body {
+			background-color: black;
+		}
+		#loading {
+			color: white;
+			vertical-align: middle;
+			align-items: center;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" tabindex="-1"></canvas>
+	<script>
+		(function () {
+			var htmlCanvas = document.getElementById('canvas');
+
+			initialize();
+			function initialize() {
+				window.addEventListener('resize', resizeCanvas, false);
+				window.addEventListener('load', resizeCanvas, false);
+				resizeCanvas();
+			}
+			function resizeCanvas() {
+				htmlCanvas.width = window.innerWidth * window.devicePixelRatio;
+				htmlCanvas.height = window.innerHeight * window.devicePixelRatio;
+				htmlCanvas.style.width = `${window.innerWidth}px`;
+				htmlCanvas.style.height = `${window.innerHeight}px`;
+			}
+		})();
+
+		var Module = {
+			canvas: (function() { return document.getElementById('!canvas'); })()
+		};
+		//window.addEventListener('keydown', function(event){
+		//	event.stopImmediatePropagation();
+		//}, true);
+
+		//window.addEventListener('keyup', function(event){
+		//	event.stopImmediatePropagation();
+		//}, true);
+
+	</script>
+	<script async type="text/javascript" src="game.js"></script>
+</body>
+
+</html>

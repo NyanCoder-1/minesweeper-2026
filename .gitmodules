@@ -1,0 +1,9 @@
+[submodule "submodules/cglm"]
+	path = submodules/cglm
+	url = git@github.com:recp/cglm.git
+[submodule "submodules/SDL"]
+	path = submodules/SDL
+	url = git@github.com:libsdl-org/SDL.git
+[submodule "submodules/stb"]
+	path = submodules/stb
+	url = git@github.com:nothings/stb.git

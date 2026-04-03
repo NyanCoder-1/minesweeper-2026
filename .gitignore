@@ -1,0 +1,6 @@
+/build
+/embuild
+/bin/**
+!/bin/index.html
+/.vscode
+/.cache
