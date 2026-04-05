@@ -48,8 +48,7 @@ const char *const shaderFragmentTexturedSource =
 	"    fragColor = texture(uTexture, uv);\n"
 	"}\n";
 const char *const shaderFragmentSDFSource =
-	"#version 330 core\n"
-	"#extension GL_OES_standard_derivatives : enable\n"
+	"#version 300 es\nprecision mediump float;\n"
 	"uniform vec4 color;\n"
 	"uniform sampler2D tex;\n"
 	"in vec2 uv;\n"
@@ -68,8 +67,7 @@ const char *const shaderFragmentSDFSource =
 	"    fragColor = vec4(color.rgb, color.a * opacity);\n"
 	"}\n";
 const char *const shaderFragmentMSDFSource =
-	"#version 330 core\n"
-	"#extension GL_OES_standard_derivatives : enable\n"
+	"#version 300 es\nprecision mediump float;\n"
 	"uniform vec4 color;\n"
 	"uniform sampler2D tex;\n"
 	"in vec2 uv;\n"
@@ -107,8 +105,7 @@ const char *const shaderVertexTexturedColoredSource =
 	"    color = inColor;\n"
 	"}\n";
 const char *const shaderFragmentMSDFColoredSource =
-	"#version 330 core\n"
-	"#extension GL_OES_standard_derivatives : enable\n"
+	"#version 300 es\nprecision mediump float;\n"
 	"uniform sampler2D tex;\n"
 	"in vec2 uv;\n"
 	"in vec4 color;\n"
