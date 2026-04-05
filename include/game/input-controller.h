@@ -10,6 +10,8 @@ enum InputMode {
 	InputMode_Touchscreen,
 };
 struct InputController {
+	SDL_Gamepad* gamepad;
+
 	//  Presision inputs
 	// ! Actual game inputs
 	float moveSide;

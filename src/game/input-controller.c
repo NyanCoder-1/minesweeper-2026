@@ -1,6 +1,7 @@
 #include "game/input-controller.h"
 #include "SDL3/SDL_events.h"
 #include <math.h>
+#include <stdint.h>
 #include <string.h>
 
 InputController InputController_Create()
@@ -19,6 +20,30 @@ void InputController_PreUpdate(InputController *self)
 	self->isCheck = false;
 	self->mouseDeltaX = 0.0f;
 	self->mouseDeltaY = 0.0f;
+	if (SDL_HasGamepad()) {
+		if (self->gamepad && !SDL_GamepadConnected(self->gamepad)) {
+			SDL_CloseGamepad(self->gamepad);
+			self->gamepad = NULL;
+		}
+		if (!self->gamepad) {
+			int count = 0;
+			SDL_JoystickID *ids = SDL_GetGamepads(&count);
+			// Iterate over the list of gamepads
+			for(int i = 0; i < count; i++) {
+				SDL_Gamepad* gamepd = SDL_OpenGamepad(ids[i]);
+				if(self->gamepad == NULL) {
+					self->gamepad = gamepd;
+				} else {
+					SDL_CloseGamepad(gamepd);
+					continue;
+				}
+				// Close the other gamepads
+				if(i > 0) {
+					SDL_CloseGamepad(gamepd);
+				}
+			}
+		}
+	}
 }
 void InputController_Event(InputController *self, const SDL_Event *event)
 {
@@ -60,6 +85,16 @@ void InputController_Event(InputController *self, const SDL_Event *event)
 	} else if (event->type == SDL_EVENT_MOUSE_MOTION) {
 		self->mouseDeltaX = event->motion.xrel;
 		self->mouseDeltaY = event->motion.yrel;
+	} else if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+		if (event->gaxis.axis == SDL_GAMEPAD_AXIS_LEFTX) {
+			self->gamepadLeftStickX = event->gaxis.value / (float)(INT16_MAX + 1);
+		} else if (event->gaxis.axis == SDL_GAMEPAD_AXIS_LEFTY) {
+			self->gamepadLeftStickY = event->gaxis.value / (float)(INT16_MAX + 1);
+		} else if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTX) {
+			self->gamepadRightStickX = event->gaxis.value / (float)(INT16_MAX + 1);
+		} else if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTY) {
+			self->gamepadRightStickY = event->gaxis.value / (float)(INT16_MAX + 1);
+		}
 	}
 }
 void InputController_Update(InputController *self)
@@ -71,19 +106,21 @@ void InputController_Update(InputController *self)
 	float deltaForward = 0.0f;
 	float deltaRight = 0.0f;
 
+	static const float GAMEPAD_DEADZONE = 0.1f;
 	// Keyboard input
-	deltaForward += (self->isButtonW ? 1.0f : 0.0f) + (self->isButtonS ? -1.0f : 0.0f);
-	deltaRight += (self->isButtonA ? -1.0f : 0.0) + (self->isButtonD ? 1.0f : 0.0);
+	deltaForward += (self->isButtonW ? 1.0f : 0.0f) + (self->isButtonS ? -1.0f : 0.0f) - (fabsf(self->gamepadLeftStickY) > GAMEPAD_DEADZONE ? self->gamepadLeftStickY : 0.0f);
+	deltaRight += (self->isButtonA ? -1.0f : 0.0) + (self->isButtonD ? 1.0f : 0.0) + (fabsf(self->gamepadLeftStickX) > GAMEPAD_DEADZONE ? self->gamepadLeftStickX : 0.0f);
 	// Normalize diagonal movement
-	if (deltaForward * deltaForward + deltaRight * deltaRight > 1.0f) {
-		float speedDiagonal = sinf(M_PI_2);
-		deltaForward *= speedDiagonal;
-		deltaRight *= speedDiagonal;
+	const float sqrMovement = deltaForward * deltaForward + deltaRight * deltaRight;
+	if (sqrMovement > 1.0f) {
+		const float speedDiagonal = sqrt(sqrMovement);
+		deltaForward /= speedDiagonal;
+		deltaRight /= speedDiagonal;
 	}
 	self->moveSide = deltaRight;
 	self->moveForward = deltaForward;
-	self->lookX = self->mouseDeltaX;
-	self->lookY = self->mouseDeltaY;
+	self->lookX = self->mouseDeltaX + (fabsf(self->gamepadRightStickX) > GAMEPAD_DEADZONE ? self->gamepadRightStickX : 0.0f);
+	self->lookY = self->mouseDeltaY + (fabsf(self->gamepadRightStickY) > GAMEPAD_DEADZONE ? self->gamepadRightStickY : 0.0f);
 
 	self->isLBMPrev = self->isLBM;
 	self->isRMBPrev = self->isRMB;

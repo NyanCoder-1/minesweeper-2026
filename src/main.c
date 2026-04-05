@@ -1,4 +1,3 @@
-#include "SDL3/SDL_oldnames.h"
 #include "app-context-pre.h"
 #include "app-context.h"
 #include "cglm/cam.h"
@@ -7,7 +6,7 @@
 #include "game/input-controller.h"
 #include "game/player-controller.h"
 #include "render/builtin-shaders.h"
-#include "render/mesh.h" // IWYU pragma: keep
+#include "render/mesh.h"   // IWYU pragma: keep
 #include "render/shader.h" // IWYU pragma: keep
 #include "render/type-vertex.h"
 #include <GLES3/gl3.h>
@@ -131,9 +130,6 @@ static void update(AppContext *ctx, double deltaTime)
 	InputController_Update(&ctx->input);
 	PlayerController_Update(&ctx->player, deltaTime);
 	CameraController_Update(&ctx->camera, deltaTime);
-	//ctx->angle = fmodf(ctx->angle + deltaTime * M_PI * 0.05f, M_PI * 2);
-	//CameraController_SetPosition(&ctx->camera, (vec3){-sinf(ctx->angle) * 4.0f, 0.5f, -cosf(ctx->angle) * 4.0f});
-	//CameraController_SetRotation(&ctx->camera, (vec3){sinf(ctx->angle * 17.0f) * 0.5f, ctx->angle, 0.0f});
 }
 static void render(AppContext *ctx)
 {
@@ -164,7 +160,7 @@ enum WindowInitialSize {
 };
 static int createWindow(AppContext *ctx)
 {
-	if (!SDL_Init(SDL_INIT_VIDEO)) {
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
 		return SDL_Fail();
 	}
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);

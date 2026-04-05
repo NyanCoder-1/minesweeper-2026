@@ -41,14 +41,12 @@ void CameraController_GetViewMatrix(const CameraController self, mat4 matOut)
 	if (!matOut) {
 		return;
 	}
-	const vec3 lookat = {
-		self.position[0] + (sinf(self.rotation[1]) * cosf(self.rotation[0])),
-		self.position[1] - (sinf(self.rotation[0])),
-		self.position[2] + (cosf(self.rotation[1]) * cosf(self.rotation[0])),
-	};
+	const vec3 lookat = {self.position[0], self.position[1], self.position[2] + 1.0f};
 	glm_lookat((vec3){self.position[0], self.position[1], self.position[2]}, (vec3){lookat[0], lookat[1], lookat[2]}, (vec3){0.0, 1.0, 0.0}, matOut);
 	mat4 matRotation;
-	glm_rotate_z(GLM_MAT4_IDENTITY, self.rotation[2], matRotation);
+	glm_rotate_x(GLM_MAT4_IDENTITY, -self.rotation[0], matRotation);
+	glm_rotate_y(matRotation, -self.rotation[1], matRotation);
+	glm_rotate_z(matRotation, -self.rotation[2], matRotation);
 	glm_mat4_mul(matRotation, matOut, matOut);
 }
 void CameraController_Update(CameraController *self, double deltaTime)
