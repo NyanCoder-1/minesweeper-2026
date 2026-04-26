@@ -3,6 +3,7 @@
 
 #include "app-context-pre.h" // IWYU pragma: export
 #include "cglm/cglm.h"		 // IWYU pragma: export
+#include "game/block.h"
 #include "game/camera-controller.h"
 #include "game/input-controller.h"
 #include "game/player-controller.h"
@@ -46,6 +47,7 @@ struct AppContext {
 	CameraController camera;
 	float angle;
 	PlayerController player;
+	Block block;
 
 	float playerSpeed;
 	float screenFOV;

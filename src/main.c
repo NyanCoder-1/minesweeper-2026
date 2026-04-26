@@ -2,6 +2,7 @@
 #include "app-context.h"
 #include "cglm/cam.h"
 #include "cglm/cglm.h" // IWYU pragma: export
+#include "game/block.h"
 #include "game/camera-controller.h"
 #include "game/input-controller.h"
 #include "game/player-controller.h"
@@ -127,6 +128,11 @@ static double deltaTime(AppContext *ctx)
 }
 static void update(AppContext *ctx, double deltaTime)
 {
+	mat4 matProjection;
+	glm_perspective(glm_rad(ctx->screenFOV), ctx->windowWidth / (float)(ctx->windowHeight), 0.1f, 100.f, matProjection);
+	mat4 matView;
+	CameraController_GetViewMatrix(ctx->camera, matView);
+	glm_mat4_mul(matProjection, matView, ctx->matrixViewProjection);
 	InputController_Update(&ctx->input);
 	PlayerController_Update(&ctx->player, deltaTime);
 	CameraController_Update(&ctx->camera, deltaTime);
@@ -136,18 +142,14 @@ static void render(AppContext *ctx)
 	glClearColor(0x07 / 255.f, 0x07 / 255.f, 0x07 / 255.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat4 matProjection;
-	glm_perspective(glm_rad(ctx->screenFOV), ctx->windowWidth / (float)(ctx->windowHeight), 0.1f, 100.f, matProjection);
-	mat4 matView;
-	CameraController_GetViewMatrix(ctx->camera, matView);
-	mat4 matViewProjection;
-	glm_mat4_mul(matProjection, matView, matViewProjection);
-	Shader_Apply(ctx->shaderSolid);
-	Shader_SetMVP(ctx->shaderSolid, matViewProjection);
-	Mesh_Render(ctx->mesh);
+	// Shader_Apply(ctx->shaderSolid);
+	// Shader_SetMVP(ctx->shaderSolid, ctx->matrixViewProjection);
+	// Mesh_Render(ctx->mesh);
 	PlayerController_Render(ctx->player);
+	Block_Render(ctx->block);
 
 	SDL_GL_SwapWindow(ctx->window);
+
 }
 
 enum WindowInitialSize {
@@ -245,9 +247,13 @@ static void initGame(AppContext *ctx)
 	ctx->playerSpeed = 3.0f;
 
 	ctx->player = PlayerController_Create(ctx, (vec3){0.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f});
+
+	ctx->block = Block_Create(ctx, BLOCK_1, (vec3){0.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, false, true, false));
 }
 static void freeResources(AppContext *ctx)
 {
+	Block_Destroy(&ctx->block);
+
 	Mesh_Destroy(&ctx->mesh);
 
 	Shader_Destroy(ctx->shaderSolid);
