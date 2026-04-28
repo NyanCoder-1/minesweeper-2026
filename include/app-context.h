@@ -47,7 +47,7 @@ struct AppContext {
 	CameraController camera;
 	float angle;
 	PlayerController player;
-	Block block;
+	Block block[11];
 
 	float playerSpeed;
 	float screenFOV;
