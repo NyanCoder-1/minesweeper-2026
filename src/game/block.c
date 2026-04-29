@@ -60,7 +60,9 @@ Block Block_Create(AppContext *appContext, uint8_t character, vec3 position, vec
 }
 void Block_Destroy(Block *block)
 {
+	if (block == NULL) return;
 	Mesh_Destroy(&block->meshGrass);
+	memset(block, 0, sizeof(Block));
 }
 void Block_Render(const Block self, bool green)
 {

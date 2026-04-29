@@ -9,13 +9,13 @@ static bool Grid_GetBit(const uint8_t *bytes, uint32_t x, uint32_t y);
 static void Grid_SetBit(uint8_t *bytes, uint32_t x, uint32_t y, bool bit);
 static void Grid_GenerateField(uint8_t *field);
 static uint8_t Grid_NeighboursCountToCharacter(int count);
+static int Grid_IsWay(const uint8_t *field);
 
 Grid Grid_Create(AppContext *appContext)
 {
 	Grid grid;
 	memset(&grid, 0, sizeof(Grid));
 
-	memset(grid.mines, 0, sizeof(grid.mines));
 	Grid_GenerateField(grid.mines);
 
 	const int8_t dx[] = {-1, 0, 1, 1, 1, 0, -1, -1};
@@ -39,6 +39,12 @@ Grid Grid_Create(AppContext *appContext)
 			grid.field[y * GRID_WIDTH + x] = Block_Create(appContext, Grid_NeighboursCountToCharacter(neighbours), (vec3){x, 0.0f, (float)(GRID_HEIGHT - y - 1)}, (vec2){1.0f, 1.0f}, Block_Shadows(true, x < GRID_WIDTH - 1, true, x > 0));
 		}
 	}
+	const int y = GRID_HEIGHT - 1;
+	const int x = Grid_IsWay(grid.mines);
+	const int i = y * GRID_WIDTH + x;
+	Block_Destroy(&grid.field[i]);
+	grid.field[i] = Block_Create(appContext, BLOCK_X, (vec3){x, 0.0f, (float)(GRID_HEIGHT - y - 1)}, (vec2){1.0f, 1.0f}, Block_Shadows(true, x < GRID_WIDTH - 1, true, x > 0));
+
 	return grid;
 }
 void Grid_Destroy(Grid *grid)
@@ -54,7 +60,7 @@ void Grid_Destroy(Grid *grid)
 }
 void Grid_Update(Grid *self, double deltaTime)
 {
-	//self->time = fmod(self->time + deltaTime, GRID_ANIM_STATE_DURATION * 2);
+	self->time = fmod(self->time + deltaTime, GRID_ANIM_STATE_DURATION * 2);
 }
 void Grid_Render(const Grid *self)
 {
@@ -108,8 +114,6 @@ static void Grid_SetBit(uint8_t *bytes, uint32_t x, uint32_t y, bool bit)
 }
 static void Grid_ClearField(uint8_t *field);
 static void Grid_ScatterMines(uint8_t *field);
-static bool Grid_IsWay(const uint8_t *field);
-static bool Grid_IsEmptyCell(const uint8_t *field);
 static void Grid_GenerateField(uint8_t *field)
 {
 	srand(time(0));
@@ -123,10 +127,7 @@ static void Grid_GenerateField(uint8_t *field)
 		// check if there is a way
 		bool isWay = Grid_IsWay(field);
 
-		// check if there is an empty cell in the bottom
-		bool isEmptyCell = Grid_IsEmptyCell(field);
-
-		good = isWay && isEmptyCell || true;
+		good = isWay;
 	}
 }
 static void Grid_ClearField(uint8_t *field)
@@ -158,22 +159,75 @@ static void Grid_ScatterMines(uint8_t *field)
 		Grid_SetBit(field, x, y, true);
 	}
 }
-static bool Grid_IsWay(const uint8_t *field)
+static int Grid_IsWay(const uint8_t *field)
 {
-	return true;
-	bool result = false;
-	uint8_t paintMap[GRID_WIDTH_BYTES * GRID_HEIGHT];
-	Grid_ClearField(paintMap);
-	uint8_t neighbours[GRID_WIDTH_BYTES * GRID_HEIGHT];
-	Grid_ClearField(neighbours);
+	int result = -1;
+	int32_t paintMap[GRID_WIDTH * GRID_HEIGHT];
+	// paint top row as 1 and paint mines as -1
+	for (int y = 0; y < GRID_HEIGHT; y++) {
+		for (int x = 0; x < GRID_WIDTH; x++) {
+			const int i = y * GRID_WIDTH + x;
+			paintMap[i] = Grid_GetBit(field, x, y) ? -1 : y == 0 ? 1 : 0;
+		}
+	}
 	bool painted;
+	int currentStep = 1;
+	const int dx[] = {-1, 0, 1, 1, 1, 0, -1, -1};
+	const int dy[] = {-1, -1, -1, 0, 1, 1, 1, 0};
+	const int dLength = sizeof(dx) / sizeof(dx[0]);
 	do {
 		painted = false;
 
+		for (int y = 0; y < GRID_HEIGHT; y++) {
+			for (int x = 0; x < GRID_WIDTH; x++) {
+				const int i = y * GRID_WIDTH + x;
+				if (paintMap[i] == currentStep) {
+					for (int j = 0; j < dLength; j++) {
+						const int nx = x + dx[j];
+						const int ny = y + dy[j];
+						if (nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT) {
+							const int k = ny * GRID_WIDTH + nx;
+							if (paintMap[k] == 0) {
+								paintMap[k] = currentStep + 1;
+								painted = true;
+							}
+						}
+					}
+				}
+			}
+		}
+		currentStep++;
 	} while (painted);
+
+	srand(time(0));
+	const int dx1[] = {-1, -1, 0, 1, 1};
+	const int dy1[] = {0, -1, -1, -1, 0};
+	const int dLength1 = sizeof(dx1) / sizeof(dx1[0]);
+	int startPoints[GRID_WIDTH];
+	memset(startPoints, 0, sizeof(startPoints));
+	int startPointsSize = 0;
+	const int y = GRID_HEIGHT - 1;
+	for (int x = 0; x < GRID_WIDTH; x++) {
+		const int i = y * GRID_WIDTH + x;
+		if (paintMap[i] != -1) {
+			int neighbours = 0;
+			for (int j = 0; j < dLength1; j++) {
+				const int nx = x + dx1[j];
+				const int ny = y + dy1[j];
+				if (nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT) {
+					const int k = ny * GRID_WIDTH + nx;
+					neighbours += (paintMap[k] == -1) ? 1 : 0;
+				}
+			}
+			if (neighbours == 0) {
+				startPoints[startPointsSize++] = x;
+			}
+		}
+	}
+
+	if (startPointsSize != 0) {
+		result = startPoints[rand() % startPointsSize];
+	}
+
 	return result;
-}
-static bool Grid_IsEmptyCell(const uint8_t *field)
-{
-	return true;
 }
