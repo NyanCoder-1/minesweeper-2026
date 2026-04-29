@@ -20,8 +20,6 @@ Shader Shader_Create(const char *vertexShaderText, const char *fragmentShaderTex
 		free(infoLog);
 	}
 
-
-
 	const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment_shader, 1, &fragmentShaderText, NULL);
 	glCompileShader(fragment_shader);
@@ -61,7 +59,13 @@ void Shader_Destroy(const Shader shader)
 }
 void Shader_SetMVP(const Shader shader, const mat4 mvp)
 {
-	glUniformMatrix4fv(shader.locationMVP, 1, GL_FALSE, (GLfloat *)mvp);
+	mat4 matMVP = {
+		{mvp[0][0], mvp[0][1], mvp[0][2], mvp[0][3]},
+		{mvp[1][0], mvp[1][1], mvp[1][2], mvp[1][3]},
+		{mvp[2][0], mvp[2][1], mvp[2][2], mvp[2][3]},
+		{mvp[3][0], mvp[3][1], mvp[3][2], mvp[3][3]},
+	};
+	glUniformMatrix4fv(shader.locationMVP, 1, GL_FALSE, (GLfloat *)matMVP);
 }
 void Shader_Apply(const Shader shader)
 {
