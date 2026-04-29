@@ -19,13 +19,39 @@ union Shadows {
 static void Block_GenerateMesh(Block *self, uint8_t character, const vec2 size, uint8_t shadows);
 static union Shadows decodeShadows(uint8_t shadows);
 uint8_t Block_Shadows(bool north, bool east, bool south, bool west);
+#define BLOCK_GRASS_FORCED ((int)('G'))
 
 Block Block_Create(AppContext *appContext, uint8_t character, vec3 position, vec2 size, uint8_t shadows)
 {
 	Block result;
 	result.appContext = appContext;
 
-	Block_GenerateMesh(&result, character, size, shadows);
+	switch (character) {
+		case BLOCK_1:
+		case BLOCK_2:
+		case BLOCK_3:
+		case BLOCK_4:
+		case BLOCK_5:
+		case BLOCK_6:
+		case BLOCK_7:
+		case BLOCK_8:
+		case BLOCK_DIRT:
+			Block_GenerateMesh(&result, BLOCK_GRASS, size, shadows);
+			Block_GenerateMesh(&result, character, size, shadows);
+			break;
+		case BLOCK_X:
+			Block_GenerateMesh(&result, BLOCK_DIRT, size, shadows);
+			Block_GenerateMesh(&result, character, size, shadows);
+			break;
+		case BLOCK_GRASS:
+			Block_GenerateMesh(&result, BLOCK_GRASS_FORCED, size, shadows);
+			Block_GenerateMesh(&result, character, size, shadows);
+			break;
+		default:
+			Block_GenerateMesh(&result, BLOCK_GRASS, size, shadows);
+			Block_GenerateMesh(&result, BLOCK_DIRT, size, shadows);
+			break;
+	}
 	result.position[0] = position[0];
 	result.position[1] = position[1];
 	result.position[2] = position[2];
@@ -36,7 +62,7 @@ void Block_Destroy(Block *block)
 {
 	Mesh_Destroy(&block->meshGrass);
 }
-void Block_Render(const Block self)
+void Block_Render(const Block self, bool green)
 {
 	Shader_Apply(self.appContext->shaderSolid);
 
@@ -52,7 +78,7 @@ void Block_Render(const Block self)
 	mat4 matMVP = GLM_MAT4_IDENTITY_INIT;
 	glm_mat4_mul(matViewProjection, matModel, matMVP);
 	Shader_SetMVP(self.appContext->shaderSolid, matMVP);
-	Mesh_Render(self.meshGrass);
+	Mesh_Render(green ? self.meshGrass : self.meshGround);
 }
 
 #define BLOCK_GRASS_COLOR_INIT {0.5f, 0.7f, 0.3f, 1.0f}
@@ -216,7 +242,10 @@ static void Block_GenerateMesh(Block *self, uint8_t character, const vec2 size, 
 			break;
 	}
 
-	self->meshGrass = Mesh_Create(vertexSolidDescription, vertexSolidDescriptionLength, vertices, sizeof(vertices[0]) * verticesLength, indices, sizeof(indices[0]) * indicesLength, MeshIndexTypeUint8);
+	if (isGrass && character != BLOCK_GRASS_FORCED)
+		self->meshGrass = Mesh_Create(vertexSolidDescription, vertexSolidDescriptionLength, vertices, sizeof(vertices[0]) * verticesLength, indices, sizeof(indices[0]) * indicesLength, MeshIndexTypeUint8);
+	else
+		self->meshGround = Mesh_Create(vertexSolidDescription, vertexSolidDescriptionLength, vertices, sizeof(vertices[0]) * verticesLength, indices, sizeof(indices[0]) * indicesLength, MeshIndexTypeUint8);
 }
 static union Shadows decodeShadows(uint8_t shadows)
 {
@@ -230,7 +259,7 @@ uint8_t Block_Shadows(bool north, bool east, bool south, bool west)
 }
 static bool Block_IsGrass(uint8_t character)
 {
-	return (character == BLOCK_GRASS || character == BLOCK_X);
+	return (character == BLOCK_GRASS || character == BLOCK_X || character == BLOCK_GRASS_FORCED);
 }
 static void Block_GenerateSurfaceFunc(const vec2 size, VertexSolid *vertices, uint8_t *indices, const vec2 *surface, const size_t surfaceLength, const uint8_t *dynamicIndices, const size_t dynamicIndicesLength, const vec4 colorBase, const vec4 colorSymbol, size_t *verticesLength, size_t *indicesLength)
 {

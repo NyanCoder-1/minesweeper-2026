@@ -136,21 +136,20 @@ static void update(AppContext *ctx, double deltaTime)
 	InputController_Update(&ctx->input);
 	PlayerController_Update(&ctx->player, deltaTime);
 	CameraController_Update(&ctx->camera, deltaTime);
+	Grid_Update(&ctx->grid, deltaTime);
 }
 static void render(AppContext *ctx)
 {
-	glClearColor(0x07 / 255.f, 0x07 / 255.f, 0x07 / 255.f, 1.f);
+	glClearColor(0x25 / 255.f, 0xa9 / 255.f, 0xf8 / 255.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Shader_Apply(ctx->shaderSolid);
 	// Shader_SetMVP(ctx->shaderSolid, ctx->matrixViewProjection);
 	// Mesh_Render(ctx->mesh);
 	PlayerController_Render(ctx->player);
-	for (int i = 0; i < 11; i++)
-		Block_Render(ctx->block[i]);
+	Grid_Render(&ctx->grid);
 
 	SDL_GL_SwapWindow(ctx->window);
-
 }
 
 enum WindowInitialSize {
@@ -249,22 +248,23 @@ static void initGame(AppContext *ctx)
 
 	ctx->player = PlayerController_Create(ctx, (vec3){0.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 0.0f});
 
-	ctx->block[0] = Block_Create(ctx, BLOCK_1, (vec3){0.0f, 0.0f, 1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, true, true, false));
-	ctx->block[1] = Block_Create(ctx, BLOCK_2, (vec3){1.0f, 0.0f, 1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, true, true, true));
-	ctx->block[2] = Block_Create(ctx, BLOCK_3, (vec3){2.0f, 0.0f, 1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, false, true, true));
-	ctx->block[3] = Block_Create(ctx, BLOCK_4, (vec3){0.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, true, false));
-	ctx->block[4] = Block_Create(ctx, BLOCK_5, (vec3){1.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, true, true));
-	ctx->block[5] = Block_Create(ctx, BLOCK_6, (vec3){2.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, true, true));
-	ctx->block[6] = Block_Create(ctx, BLOCK_7, (vec3){0.0f, 0.0f, -1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, false, false));
-	ctx->block[7] = Block_Create(ctx, BLOCK_8, (vec3){1.0f, 0.0f, -1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, false, true));
-	ctx->block[8] = Block_Create(ctx, BLOCK_DIRT, (vec3){2.0f, 0.0f, -1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, false, false, true));
-	ctx->block[9] = Block_Create(ctx, BLOCK_X, (vec3){3.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, true, false, true));
-	ctx->block[10] = Block_Create(ctx, BLOCK_GRASS, (vec3){4.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, false, false, true));
+	ctx->grid = Grid_Create(ctx);
+	// ctx->block[0] = Block_Create(ctx, BLOCK_1, (vec3){0.0f, 0.0f, 1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, true, true, false));
+	// ctx->block[1] = Block_Create(ctx, BLOCK_2, (vec3){1.0f, 0.0f, 1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, true, true, true));
+	// ctx->block[2] = Block_Create(ctx, BLOCK_3, (vec3){2.0f, 0.0f, 1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, false, true, true));
+	// ctx->block[3] = Block_Create(ctx, BLOCK_4, (vec3){0.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, true, false));
+	// ctx->block[4] = Block_Create(ctx, BLOCK_5, (vec3){1.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, true, true));
+	// ctx->block[5] = Block_Create(ctx, BLOCK_6, (vec3){2.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, true, true));
+	// ctx->block[6] = Block_Create(ctx, BLOCK_7, (vec3){0.0f, 0.0f, -1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, false, false));
+	// ctx->block[7] = Block_Create(ctx, BLOCK_8, (vec3){1.0f, 0.0f, -1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, true, false, true));
+	// ctx->block[8] = Block_Create(ctx, BLOCK_DIRT, (vec3){2.0f, 0.0f, -1.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(true, false, false, true));
+	// ctx->block[9] = Block_Create(ctx, BLOCK_X, (vec3){3.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, true, false, true));
+	// ctx->block[10] = Block_Create(ctx, BLOCK_GRASS, (vec3){4.0f, 0.0f, 0.0f}, (vec2){1.0f, 1.0f}, Block_Shadows(false, false, false, true));
 }
 static void freeResources(AppContext *ctx)
 {
-	for (int i = 0; i < 11; i++)
-		Block_Destroy(&ctx->block[i]);
+	// for (int i = 0; i < 11; i++)
+	// 	Block_Destroy(&ctx->block[i]);
 
 	Mesh_Destroy(&ctx->mesh);
 

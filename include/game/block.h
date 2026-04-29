@@ -30,6 +30,6 @@ uint8_t Block_Shadows(bool north, bool east, bool south, bool west);
 
 Block Block_Create(AppContext *appContext, uint8_t character, vec3 position, vec2 size, uint8_t shadows);
 void Block_Destroy(Block *block);
-void Block_Render(const Block self);
+void Block_Render(const Block self, bool green);
 
 #endif
