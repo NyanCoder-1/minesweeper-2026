@@ -15,13 +15,14 @@ void PlayerController_Destroy(PlayerController *playerController)
 		return;
 	}
 }
+#define PLAYER_CONTROLLER_LOOK_SMOOTH_SPEED 500.0f
 void PlayerController_Update(PlayerController *self, float deltaTime)
 {
 	if (!self) {
 		return;
 	}
-	self->rotation[0] = glm_clamp(self ->rotation[0] + self->appContext->input.lookY * M_PI / 720.0f, -M_PI_2, M_PI_2);
-	self->rotation[1] += self->appContext->input.lookX * M_PI / 720.0f;
+	self->rotation[0] = glm_clamp(self ->rotation[0] + (self->appContext->input.lookY + self->appContext->input.lookYSmooth * deltaTime * PLAYER_CONTROLLER_LOOK_SMOOTH_SPEED) * M_PI / 720.0f, -M_PI_2, M_PI_2);
+	self->rotation[1] += (self->appContext->input.lookX + self->appContext->input.lookXSmooth * deltaTime * PLAYER_CONTROLLER_LOOK_SMOOTH_SPEED) * M_PI / 720.0f;
 	self->position[0] += (sinf(self->rotation[1]) * self->appContext->input.moveForward + sinf(self->rotation[1] + M_PI_2) * self->appContext->input.moveSide) * deltaTime * self->appContext->playerSpeed;
 	self->position[2] += (cosf(self->rotation[1]) * self->appContext->input.moveForward + cosf(self->rotation[1] + M_PI_2) * self->appContext->input.moveSide) * deltaTime * self->appContext->playerSpeed;
 

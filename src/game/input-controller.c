@@ -119,8 +119,10 @@ void InputController_Update(InputController *self)
 	}
 	self->moveSide = deltaRight;
 	self->moveForward = deltaForward;
-	self->lookX = self->mouseDeltaX + (fabsf(self->gamepadRightStickX) > GAMEPAD_DEADZONE ? self->gamepadRightStickX : 0.0f);
-	self->lookY = self->mouseDeltaY + (fabsf(self->gamepadRightStickY) > GAMEPAD_DEADZONE ? self->gamepadRightStickY : 0.0f);
+	self->lookX = self->mouseDeltaX;
+	self->lookY = self->mouseDeltaY;
+	self->lookXSmooth = fabsf(self->gamepadRightStickX) > GAMEPAD_DEADZONE ? self->gamepadRightStickX : 0.0f;
+	self->lookYSmooth = fabsf(self->gamepadRightStickY) > GAMEPAD_DEADZONE ? self->gamepadRightStickY : 0.0f;
 
 	self->isLBMPrev = self->isLBM;
 	self->isRMBPrev = self->isRMB;

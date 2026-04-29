@@ -18,6 +18,8 @@ struct InputController {
 	float moveForward;
 	float lookX;
 	float lookY;
+	float lookXSmooth;
+	float lookYSmooth;
 	// - Mouse
 	float mouseDeltaX;
 	float mouseDeltaY;
